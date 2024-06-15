@@ -72,3 +72,17 @@ Due to the many limitations of Keras (such as the inability to return the states
 - **LSTMs**: LSTMs are selected for their ability to capture long-range dependencies in sequential data. Video frames inherently have temporal relationships, and LSTMs excel in modeling such relationships, making them suitable for video captioning.
 - **Sequence-to-Sequence Model**: Seq2Seq models are well-suited for tasks where the input and output have varying lengths, as is the case in video captioning. This architecture enables the model to effectively encode the video content and generate captions of varying lengths.
 - **Word Embeddings**: Word embeddings provide a continuous representation of words, preserving semantic relationships. Learning embeddings allows the model to capture the meaning of words in the context of the video content.
+
+<h2 id="RunPreprocessing">Run Preprocessing</h2>
+
+To run pre-processing:
+<code>
+python VideoCaptioningPreProcessing.py process_main --video_dest '/content/extracted_folder/YouTubeClips' --feat_dir '/content/extracted_folder/YouTubeClips/features/' --temp_dest '/content/extracted_folder/YouTubeClips/temp/' --img_dim 224 --channels 3 --batch_size=128 --frames_step 80
+</code>
+
+<h2 id="RunModel">Run Model</h2>
+
+To run the model:
+<code>
+!python Video_seq2seq.py process_main --video_dest '/content/extracted_folder/YouTubeClips' --feat_dir '/content/extracted_folder/YouTubeClips/features/' --temp_dest '/content/extracted_folder/YouTubeClips/temp/' --img_dim 224 --channels 3 --batch_size=128 --frames_step 80
+</code>
