@@ -1,0 +1,10 @@
+tensorflow==1.15.0
+pandas
+numpy
+ipdb
+opencv-python
+keras==2.2.4
+matplotlib
+fire
+elapsedtimer
+tqdm
