@@ -4,32 +4,13 @@ Video Captioning is a sequential learning model that employs an encoder-decoder 
 
 The significance of captioning stems from its capacity to enhance accessibility to videos in various ways. An automated video caption generator aids in improving the searchability of videos on websites. Additionally, it facilitates the grouping of videos based on their content by making the process more straightforward.
 
-## Table of contents
-* <a href="#Inspiration">Inspiration</a>
-* <a href="#Dataset">Dataset</a>
-* <a href="#Setup">Setup</a>
-* <a href="#Usage">Usage</a>
-* <a href="#Model">Model</a>
-  * <a href="#TrainingArchitecture">Training Architecture</a>
-  * <a href="#InferenceArchitecture">Inference Architecture</a>
-  * <a href="#Loss">Loss</a>
-  * <a href="#Metric">Metric</a>
-* <a href="#Features">Features</a>
-* <a href="#Scripts">Scripts</a>
-* <a href="#FutureDevelopment">Future Development</a>
-* <a href="#References">References</a>
-
-<h2 id="Inspiration">Inspiration</h2>
-
-While exploring new projects, I discovered video captioning and noticed the scarcity of reliable resources available. With this project, I aim to simplify the implementation of video captioning, making it more accessible for individuals interested in this field.
-
 <h2 id="Dataset">Dataset</h2>
 
 This project utilizes the <a href="https://opendatalab.com/MSVD">MSVD</a> dataset, which consists of 1450 training videos and 100 testing videos, to facilitate the development of video captioning models.
 
 <h2 id="Setup">Setup</h2>
 
-Clone the repository : <code>git clone https://github.com/MathurUtkarsh/Video-Captioning-Using-LSTM-and-Keras.git</code>
+Clone the repository : <code>git clone https://github.com/angadbawa/Video-Captioning </code>
 
 Video Caption Generator: <code>cd Video-Captioning</code>
 
