@@ -33,6 +33,20 @@ To convert the video into features, run the "extract_features.py" file using the
 
 For local training, run the "train.py" file. Alternatively, you can use the "Video_Captioning.ipynb" notebook.
 
+
+To run pre-processing:
+<code>
+python VideoCaptioningPreProcessing.py process_main --video_dest '/content/extracted_folder/YouTubeClips' --feat_dir '/content/extracted_folder/YouTubeClips/features/' --temp_dest '/content/extracted_folder/YouTubeClips/temp/' --img_dim 224 --channels 3 --batch_size=128 --frames_step 80
+</code>
+
+<h2 id="RunModel">Run Model</h2>
+
+To run the model:
+<code>
+!python Video_seq2seq.py process_main --video_dest '/content/extracted_folder/YouTubeClips' --feat_dir '/content/extracted_folder/YouTubeClips/features/' --temp_dest '/content/extracted_folder/YouTubeClips/temp/' --img_dim 224 --channels 3 --batch_size=128 --frames_step 80
+</code>
+
+
 <h2 id="Model">Model</h2>
 
 <h3 id="Introduction">Introduction</h3>
@@ -74,15 +88,3 @@ Due to the many limitations of Keras (such as the inability to return the states
 - **Word Embeddings**: Word embeddings provide a continuous representation of words, preserving semantic relationships. Learning embeddings allows the model to capture the meaning of words in the context of the video content.
 
 <h2 id="RunPreprocessing">Run Preprocessing</h2>
-
-To run pre-processing:
-<code>
-python VideoCaptioningPreProcessing.py process_main --video_dest '/content/extracted_folder/YouTubeClips' --feat_dir '/content/extracted_folder/YouTubeClips/features/' --temp_dest '/content/extracted_folder/YouTubeClips/temp/' --img_dim 224 --channels 3 --batch_size=128 --frames_step 80
-</code>
-
-<h2 id="RunModel">Run Model</h2>
-
-To run the model:
-<code>
-!python Video_seq2seq.py process_main --video_dest '/content/extracted_folder/YouTubeClips' --feat_dir '/content/extracted_folder/YouTubeClips/features/' --temp_dest '/content/extracted_folder/YouTubeClips/temp/' --img_dim 224 --channels 3 --batch_size=128 --frames_step 80
-</code>
