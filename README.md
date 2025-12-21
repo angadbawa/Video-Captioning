@@ -18,7 +18,7 @@ This project utilizes the <a href="https://opendatalab.com/MSVD">MSVD</a> datase
 - **Feature Extraction**: Support for VGG16, ResNet50, and custom CNN backbones
 - **Flexible Generation**: Greedy search and beam search decoding
 
-### Modern PyTorch Implementation
+### PyTorch Implementation
 - **Clean Architecture**: Modular design with separate components for data, models, training, and inference
 - **Configuration Management**: Centralized configuration system with dataclasses
 - **Advanced Training**: Modern training loop with validation, checkpointing, and early stopping
