@@ -6,19 +6,12 @@ from pathlib import Path
 import torch
 import numpy as np
 
-# Add src to path
 sys.path.append(str(Path(__file__).parent / "src"))
 
 from src.inference.predictor import VideoCaptionPredictor, BatchPredictor
 
 
-def setup_logging(log_level: str = "INFO"):
-    """Setup logging configuration."""
-    logging.basicConfig(
-        level=getattr(logging, log_level.upper()),
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        handlers=[logging.StreamHandler(sys.stdout)]
-    )
+from src.utils.logging import setup_logging
 
 def predict_single_video(args):
     """Predict caption for a single video."""
@@ -82,7 +75,6 @@ def predict_batch_videos(args):
     """Predict captions for multiple videos."""
     logger = logging.getLogger(__name__)
     
-    # Load video paths
     if args.video_list.endswith('.txt'):
         with open(args.video_list, 'r') as f:
             video_paths = [Path(line.strip()) for line in f if line.strip()]
@@ -96,12 +88,10 @@ def predict_batch_videos(args):
     
     logger.info(f"Found {len(video_paths)} videos to process")
     
-    # Initialize predictor
     device = torch.device(args.device if args.device else ('cuda' if torch.cuda.is_available() else 'cpu'))
     predictor = VideoCaptionPredictor(Path(args.model_path), device=device)
     batch_predictor = BatchPredictor(predictor, batch_size=args.batch_size)
     
-    # Generate predictions
     logger.info("Starting batch prediction...")
     results = batch_predictor.predict_videos(
         video_paths=video_paths,
@@ -112,7 +102,6 @@ def predict_batch_videos(args):
         temperature=args.temperature
     )
     
-    # Print results
     for result in results:
         print(f"\nVideo: {result.get('video_path', 'Unknown')}")
         if 'error' in result:
@@ -120,7 +109,6 @@ def predict_batch_videos(args):
         else:
             print(f"Caption: {result['caption']}")
     
-    # Save results
     if args.output:
         output_data = {
             'parameters': {
@@ -138,7 +126,6 @@ def predict_batch_videos(args):
         
         logger.info(f"Results saved to: {args.output}")
     
-    # Save captions in simple format
     if args.captions_file:
         with open(args.captions_file, 'w') as f:
             for result in results:
@@ -248,7 +235,6 @@ def main():
         parser.print_help()
         return
     
-    # Setup logging
     setup_logging(args.log_level)
     
     # Execute command

@@ -63,17 +63,14 @@ class CaptionDecoder(nn.Module):
     
     def _init_weights(self):
         """Initialize model weights."""
-        # Initialize embedding weights
         nn.init.uniform_(self.embedding.weight, -0.1, 0.1)
         
-        # Initialize LSTM weights
         for name, param in self.lstm.named_parameters():
             if 'weight' in name:
                 nn.init.orthogonal_(param)
             elif 'bias' in name:
                 nn.init.constant_(param, 0)
         
-        # Initialize linear layer weights
         nn.init.xavier_uniform_(self.output_projection.weight)
         nn.init.constant_(self.output_projection.bias, 0)
         
@@ -103,7 +100,6 @@ class CaptionDecoder(nn.Module):
         else:
             projected_state = encoder_final_state
         
-        # Initialize hidden and cell states
         hidden_state = projected_state.unsqueeze(0).repeat(self.num_layers, 1, 1)
         cell_state = torch.zeros_like(hidden_state)
         
@@ -136,7 +132,6 @@ class CaptionDecoder(nn.Module):
         
         # Prepare LSTM input
         if self.use_attention:
-            # Get current hidden state for attention
             current_hidden = hidden_state[0][-1]  # [batch_size, hidden_dim]
             
             # Compute attention
@@ -171,7 +166,6 @@ class CaptionDecoder(nn.Module):
         else:
             projected_output = lstm_output.squeeze(1)
         
-        # Generate output logits
         output_logits = self.output_projection(projected_output)
         
         return output_logits, new_hidden_state, attention_weights
@@ -197,7 +191,6 @@ class CaptionDecoder(nn.Module):
         """
         batch_size, target_len = target_tokens.shape
         
-        # Initialize hidden state
         hidden_state = self.init_hidden_state(encoder_final_state)
         
         # Prepare outputs
@@ -255,10 +248,8 @@ class CaptionDecoder(nn.Module):
         batch_size = encoder_outputs.size(0)
         device = encoder_outputs.device
         
-        # Initialize hidden state
         hidden_state = self.init_hidden_state(encoder_final_state)
         
-        # Initialize with start token
         input_token = torch.full((batch_size, 1), start_token_id, device=device)
         
         # Storage for outputs
@@ -266,7 +257,6 @@ class CaptionDecoder(nn.Module):
         all_attention_weights = []
         
         for _ in range(max_length):
-            # Forward step
             logits, hidden_state, attention_weights = self.forward_step(
                 input_token, hidden_state, encoder_outputs, encoder_mask
             )
@@ -282,11 +272,9 @@ class CaptionDecoder(nn.Module):
             if attention_weights is not None:
                 all_attention_weights.append(attention_weights)
             
-            # Check for end token
             if (next_token == end_token_id).all():
                 break
             
-            # Update input for next step
             input_token = next_token
         
         # Stack outputs

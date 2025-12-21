@@ -70,7 +70,6 @@ class Vocabulary:
         
         print(f"Total unique words before filtering: {len(word_counts)}")
         
-        # Filter words by frequency threshold
         filtered_words = [
             word for word, count in word_counts.items()
             if count >= self.config.data.vocab_threshold
@@ -83,7 +82,6 @@ class Vocabulary:
         if len(filtered_words) > self.config.data.max_vocab_size - 4:  # -4 for special tokens
             filtered_words = filtered_words[:self.config.data.max_vocab_size - 4]
         
-        # Add words to vocabulary
         for word in filtered_words:
             idx = len(self.word2idx)
             self.word2idx[word] = idx
@@ -102,16 +100,13 @@ class Vocabulary:
         Returns:
             List of tokens
         """
-        # Convert to lowercase
         text = text.lower()
         
-        # Remove punctuation and special characters
         text = re.sub(r'[^\w\s]', '', text)
         
         # Split into words
         tokens = text.split()
         
-        # Remove empty tokens
         tokens = [token for token in tokens if token.strip()]
         
         return tokens
@@ -151,7 +146,6 @@ class Vocabulary:
         """
         tokens = self._tokenize(caption)
         
-        # Add start and end tokens
         encoded = [self.start_idx]
         
         for token in tokens:
@@ -306,13 +300,11 @@ def build_vocabulary_from_csv(
     """
     print(f"Loading captions from {csv_path}")
     
-    # Load captions
     df = pd.read_csv(csv_path)
     captions = df[caption_column].dropna().tolist()
     
     print(f"Loaded {len(captions)} captions")
     
-    # Build vocabulary
     vocabulary = Vocabulary(config)
     vocabulary.build_vocabulary(captions)
     

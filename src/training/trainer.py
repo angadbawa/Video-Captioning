@@ -299,7 +299,6 @@ class VideoCaptioningTrainer:
                 )
                 total_loss += loss.item()
                 
-                # Generate predictions for metrics
                 generated_outputs = self.model.generate(
                     video_features=batch['video_features'],
                     start_token_id=self.vocabulary.start_idx,
@@ -380,7 +379,6 @@ class VideoCaptioningTrainer:
                         'epoch': epoch
                     })
                 
-                # Check for improvement
                 current_score = val_metrics.get('bleu_4', val_metrics['loss'])
                 is_best = current_score > self.best_val_score
                 
@@ -388,7 +386,6 @@ class VideoCaptioningTrainer:
                     self.best_val_score = current_score
                     self.patience_counter = 0
                     
-                    # Save best model
                     self.checkpoint_manager.save_checkpoint(
                         model=self.model,
                         optimizer=self.optimizer,
@@ -405,18 +402,15 @@ class VideoCaptioningTrainer:
                     self.logger.info(f"Early stopping at epoch {epoch}")
                     break
                 
-                # Save history
                 self.train_history.append(train_metrics)
                 self.val_history.append(val_metrics)
             
-            # Update scheduler
             if self.scheduler:
                 if isinstance(self.scheduler, optim.lr_scheduler.ReduceLROnPlateau):
                     self.scheduler.step(val_metrics.get('bleu_4', val_metrics['loss']))
                 else:
                     self.scheduler.step()
             
-            # Save regular checkpoint
             if epoch % self.config.training.save_every_n_epochs == 0:
                 self.checkpoint_manager.save_checkpoint(
                     model=self.model,
@@ -431,7 +425,6 @@ class VideoCaptioningTrainer:
         total_time = time.time() - start_time
         self.logger.info(f"Training completed in {total_time:.2f} seconds")
         
-        # Save final results
         results = {
             'best_val_score': self.best_val_score,
             'total_epochs': self.current_epoch + 1,
@@ -440,7 +433,6 @@ class VideoCaptioningTrainer:
             'val_history': self.val_history
         }
         
-        # Save results to file
         results_file = self.config.experiment.checkpoint_dir / "training_results.json"
         with open(results_file, 'w') as f:
             json.dump(results, f, indent=2)

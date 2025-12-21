@@ -209,7 +209,6 @@ class CaptionMetrics:
         all_ngrams = set()
         doc_frequencies = {}
         
-        # Process references and predictions
         all_texts = predictions + references
         for text in all_texts:
             tokens = text.lower().split()
@@ -339,20 +338,17 @@ def evaluate_model_outputs(
     Returns:
         Dictionary of evaluation results
     """
-    # Load predictions and references
     with open(predictions_file, 'r') as f:
         predictions = [line.strip() for line in f]
     
     with open(references_file, 'r') as f:
         references = [line.strip() for line in f]
     
-    # Initialize metrics
     metrics = CaptionMetrics(vocabulary)
     
     # Compute metrics
     results = metrics.compute_metrics(predictions, references)
     
-    # Add diversity metrics
     diversity_metrics = metrics.compute_diversity_metrics(predictions)
     results.update(diversity_metrics)
     

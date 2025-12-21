@@ -6,7 +6,6 @@ import torch
 import pandas as pd
 from sklearn.model_selection import train_test_split
 
-# Add src to path
 sys.path.append(str(Path(__file__).parent / "src"))
 
 from src.config.config import Config
@@ -17,16 +16,7 @@ from src.training.trainer import VideoCaptioningTrainer
 from src.utils.checkpoint import CheckpointManager
 
 
-def setup_logging(log_level: str = "INFO"):
-    """Setup logging configuration."""
-    logging.basicConfig(
-        level=getattr(logging, log_level.upper()),
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        handlers=[
-            logging.StreamHandler(sys.stdout),
-            logging.FileHandler('training.log')
-        ]
-    )
+from src.utils.logging import setup_logging
 
 
 def prepare_data(config: Config) -> tuple:
@@ -81,11 +71,9 @@ def main():
     
     args = parser.parse_args()
     
-    # Setup logging
-    setup_logging(args.log_level)
+    setup_logging(args.log_level, log_file='training.log')
     logger = logging.getLogger(__name__)
     
-    # Load configuration
     config = Config()
     
     # Override config with command line arguments
@@ -102,11 +90,9 @@ def main():
     if args.no_tensorboard:
         config.experiment.use_tensorboard = False
     
-    # Update paths
     config.data.captions_file = Path(args.data_file)
     config.experiment.checkpoint_dir = Path(args.checkpoint_dir)
     
-    # Setup device
     device = torch.device(config.training.device)
     logger.info(f"Using device: {device}")
     
@@ -114,7 +100,6 @@ def main():
     logger.info("Preparing data...")
     train_df, val_df, test_df = prepare_data(config)
     
-    # Build vocabulary
     logger.info("Building vocabulary...")
     vocabulary_path = config.experiment.checkpoint_dir / "vocabulary.json"
     
@@ -126,21 +111,17 @@ def main():
         vocabulary = build_vocabulary_from_csv(config.data.captions_file, config, 'caption')
         vocabulary.save(vocabulary_path)
     
-    # Update config with actual vocabulary size
     config.model.vocab_size = len(vocabulary)
     
-    # Create data loaders
     logger.info("Creating data loaders...")
     train_loader, val_loader, test_loader = create_data_loaders(
         config, vocabulary, train_df, val_df, test_df
     )
     
-    # Initialize model
     logger.info("Initializing model...")
     model = VideoCaptioningModel(config, len(vocabulary))
     logger.info(f"Model has {model.get_trainable_parameters():,} trainable parameters")
     
-    # Initialize trainer
     trainer = VideoCaptioningTrainer(
         model=model,
         config=config,
@@ -162,7 +143,6 @@ def main():
         logger.info("Training completed successfully!")
         logger.info(f"Best validation score: {results['best_val_score']:.4f}")
         
-        # Save final model for inference
         checkpoint_manager = CheckpointManager(config.experiment.checkpoint_dir)
         inference_model_path = checkpoint_manager.save_model_for_inference(
             model=model,
@@ -173,7 +153,6 @@ def main():
         
     except KeyboardInterrupt:
         logger.info("Training interrupted by user")
-        # Save current state
         checkpoint_manager = CheckpointManager(config.experiment.checkpoint_dir)
         checkpoint_manager.save_checkpoint(
             model=model,

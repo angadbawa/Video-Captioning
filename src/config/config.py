@@ -136,7 +136,6 @@ class Config:
     
     def __post_init__(self):
         """Post-initialization validation and setup."""
-        # Create directories if they don't exist
         self.data.data_root.mkdir(exist_ok=True)
         self.data.video_dir.mkdir(exist_ok=True)
         self.data.features_dir.mkdir(exist_ok=True)
@@ -148,7 +147,6 @@ class Config:
         if abs(total_split - 1.0) > 1e-6:
             raise ValueError(f"Data splits must sum to 1.0, got {total_split}")
         
-        # Update model vocab size from data config
         self.model.vocab_size = self.data.max_vocab_size
 
 

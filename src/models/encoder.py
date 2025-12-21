@@ -113,10 +113,8 @@ class CNNFeatureExtractor(nn.Module):
         
         self.config = config
         
-        # Load pretrained VGG16
         vgg16 = models.vgg16(pretrained=pretrained)
         
-        # Remove the final classification layer
         self.features = vgg16.features
         self.avgpool = vgg16.avgpool
         self.classifier = nn.Sequential(*list(vgg16.classifier.children())[:-1])
@@ -145,7 +143,6 @@ class CNNFeatureExtractor(nn.Module):
         # Reshape to process all frames at once
         frames = frames.view(batch_size * num_frames, channels, height, width)
         
-        # Extract features
         x = self.features(frames)
         x = self.avgpool(x)
         x = torch.flatten(x, 1)

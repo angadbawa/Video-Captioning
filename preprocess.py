@@ -13,20 +13,13 @@ import torchvision.transforms as transforms
 from PIL import Image
 import pandas as pd
 
-# Add src to path
 sys.path.append(str(Path(__file__).parent / "src"))
 
 from src.config.config import Config
 from src.models.encoder import create_feature_extractor
 
 
-def setup_logging(log_level: str = "INFO"):
-    """Setup logging configuration."""
-    logging.basicConfig(
-        level=getattr(logging, log_level.upper()),
-        format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
-        handlers=[logging.StreamHandler(sys.stdout)]
-    )
+from src.utils.logging import setup_logging
 
 
 class VideoFeatureExtractor:
@@ -75,11 +68,9 @@ class VideoFeatureExtractor:
         """Load pre-trained CNN model."""
         if model_type.lower() == "vgg16":
             model = models.vgg16(pretrained=True)
-            # Remove final classification layer
             model.classifier = torch.nn.Sequential(*list(model.classifier.children())[:-1])
         elif model_type.lower() == "resnet50":
             model = models.resnet50(pretrained=True)
-            # Remove final classification layer
             model = torch.nn.Sequential(*list(model.children())[:-1])
         else:
             raise ValueError(f"Unsupported model type: {model_type}")
@@ -101,11 +92,9 @@ class VideoFeatureExtractor:
         if not cap.isOpened():
             raise ValueError(f"Cannot open video: {video_path}")
         
-        # Get video properties
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         fps = cap.get(cv2.CAP_PROP_FPS)
         
-        # Calculate frame indices to sample uniformly
         if total_frames <= self.frames_per_video:
             frame_indices = list(range(total_frames))
         else:
@@ -117,7 +106,6 @@ class VideoFeatureExtractor:
             ret, frame = cap.read()
             
             if ret:
-                # Convert BGR to RGB
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 frames.append(frame)
             else:
@@ -130,7 +118,6 @@ class VideoFeatureExtractor:
             if frames:
                 frames.append(frames[-1].copy())
             else:
-                # Create black frame if no frames were extracted
                 frames.append(np.zeros((480, 640, 3), dtype=np.uint8))
         
         return frames[:self.frames_per_video]
@@ -145,7 +132,6 @@ class VideoFeatureExtractor:
         Returns:
             Feature array [num_frames, feature_dim]
         """
-        # Convert frames to tensors
         frame_tensors = []
         for frame in frames:
             pil_frame = Image.fromarray(frame)
@@ -155,7 +141,6 @@ class VideoFeatureExtractor:
         # Stack into batch
         batch_tensor = torch.stack(frame_tensors).to(self.device)
         
-        # Extract features in batches
         features = []
         with torch.no_grad():
             for i in range(0, len(batch_tensor), self.batch_size):
@@ -179,10 +164,8 @@ class VideoFeatureExtractor:
             Feature array [num_frames, feature_dim]
         """
         try:
-            # Extract frames
             frames = self.extract_frames(video_path)
             
-            # Extract features
             features = self.extract_features_from_frames(frames)
             
             return features
@@ -219,19 +202,15 @@ class VideoFeatureExtractor:
         
         self.logger.info(f"Found {len(video_files)} video files")
         
-        # Create output directory
         output_dir.mkdir(parents=True, exist_ok=True)
         
-        # Process videos
         processed_files = []
         failed_files = []
         
         for video_path in tqdm(video_files, desc="Extracting features"):
             try:
-                # Extract features
                 features = self.extract_video_features(video_path)
                 
-                # Save features
                 output_path = output_dir / f"{video_path.stem}.npy"
                 np.save(output_path, features)
                 processed_files.append(output_path)
@@ -268,7 +247,6 @@ def create_dataset_csv(
     feature_files = list(features_dir.glob('*.npy'))
     logger.info(f"Found {len(feature_files)} feature files")
     
-    # Create dataset entries
     dataset_entries = []
     
     for feature_path in feature_files:
@@ -295,7 +273,6 @@ def create_dataset_csv(
         
         dataset_entries.append(entry)
     
-    # Load captions if provided
     if captions_file and captions_file.exists():
         logger.info(f"Loading captions from {captions_file}")
         
@@ -325,13 +302,11 @@ def create_dataset_csv(
                 if i < len(captions):
                     entry['caption'] = captions[i]
     
-    # Create DataFrame and save
     df = pd.DataFrame(dataset_entries)
     df.to_csv(output_file, index=False)
     
     logger.info(f"Created dataset CSV with {len(df)} entries: {output_file}")
     
-    # Print statistics
     with_captions = df[df['caption'] != ''].shape[0]
     logger.info(f"Entries with captions: {with_captions}/{len(df)}")
 

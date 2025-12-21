@@ -51,10 +51,8 @@ class VideoCaptionPredictor:
         """Load model and associated components."""
         checkpoint_manager = CheckpointManager(model_path.parent)
         
-        # Load inference package
         package = checkpoint_manager.load_model_for_inference(model_path)
         
-        # Extract components
         self.config = config_override or package['model_config']
         vocab_data = package['vocabulary']
         
@@ -63,14 +61,12 @@ class VideoCaptionPredictor:
         self.vocabulary.word2idx = vocab_data['word2idx']
         self.vocabulary.idx2word = vocab_data['idx2word']
         
-        # Update special token indices
         special_tokens = vocab_data['special_tokens']
         self.vocabulary.pad_idx = special_tokens['pad_idx']
         self.vocabulary.start_idx = special_tokens['start_idx']
         self.vocabulary.end_idx = special_tokens['end_idx']
         self.vocabulary.unk_idx = special_tokens['unk_idx']
         
-        # Initialize and load model
         vocab_size = len(self.vocabulary)
         self.model = VideoCaptioningModel(self.config, vocab_size)
         self.model.load_state_dict(package['model_state_dict'])
@@ -110,7 +106,6 @@ class VideoCaptionPredictor:
         if features_tensor.size(1) != target_length:
             features_tensor = self._resize_features(features_tensor, target_length)
         
-        # Generate caption
         with torch.no_grad():
             if method == 'greedy':
                 outputs = self.model.generate(
@@ -144,7 +139,6 @@ class VideoCaptionPredictor:
             'method': method
         }
         
-        # Add attention weights if available
         if 'attention_weights' in outputs:
             result['attention_weights'] = outputs['attention_weights'][0].cpu()
         
@@ -176,16 +170,13 @@ class VideoCaptionPredictor:
             Dictionary containing generated caption and metadata
         """
         if extract_features:
-            # Extract features from video
             video_features = self._extract_video_features(video_path)
         else:
-            # Load pre-extracted features
             feature_path = video_path.with_suffix('.npy')
             if not feature_path.exists():
                 raise FileNotFoundError(f"Feature file not found: {feature_path}")
             video_features = np.load(feature_path)
         
-        # Generate caption
         result = self.predict_from_features(
             video_features=video_features,
             method=method,
@@ -247,10 +238,8 @@ class VideoCaptionPredictor:
             Video features array [seq_len, feature_dim]
         """
         # This is a simplified feature extraction
-        # In practice, you'd use a pre-trained CNN like VGG16 or ResNet
         frames = self._extract_frames(video_path)
         
-        # Convert frames to features (placeholder - replace with actual CNN)
         features = []
         for frame in frames:
             # Flatten frame as a simple feature (replace with CNN features)
@@ -275,23 +264,19 @@ class VideoCaptionPredictor:
         cap = cv2.VideoCapture(str(video_path))
         frames = []
         
-        # Get total frame count
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         target_frames = self.config.model.video_sequence_length
         
-        # Calculate frame indices to sample
         if total_frames > target_frames:
             indices = np.linspace(0, total_frames - 1, target_frames, dtype=int)
         else:
             indices = list(range(total_frames))
         
-        # Extract frames
         for frame_idx in indices:
             cap.set(cv2.CAP_PROP_POS_FRAMES, frame_idx)
             ret, frame = cap.read()
             
             if ret:
-                # Convert BGR to RGB
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 frame = cv2.resize(frame, (224, 224))
                 frames.append(frame)
@@ -358,7 +343,6 @@ class VideoCaptionPredictor:
         captions = []
         
         if method == 'beam':
-            # Generate with beam search and return top-k
             result = self.predict_from_features(
                 video_features=video_features,
                 method='beam',
@@ -366,7 +350,6 @@ class VideoCaptionPredictor:
                 beam_size=beam_size
             )
             
-            # For now, return the single best caption
             # In a full implementation, you'd modify beam search to return multiple hypotheses
             captions.append({
                 'caption': result['caption'],
@@ -375,7 +358,6 @@ class VideoCaptionPredictor:
             })
         
         else:
-            # Generate multiple captions with different temperatures
             temperatures = np.linspace(0.7, 1.3, num_captions)
             
             for temp in temperatures:
@@ -418,7 +400,6 @@ class VideoCaptionPredictor:
         
         # Forward pass to get attention weights
         with torch.no_grad():
-            # Convert tokens to tensor
             input_tokens = torch.LongTensor(caption_tokens[:-1]).unsqueeze(0).to(self.device)
             target_tokens = torch.LongTensor(caption_tokens[1:]).unsqueeze(0).to(self.device)
             

@@ -10,7 +10,7 @@ The significance of captioning stems from its capacity to enhance accessibility 
 This project utilizes the <a href="https://opendatalab.com/MSVD">MSVD</a> dataset, which consists of 1450 training videos and 100 testing videos, to facilitate the development of video captioning models.
 
 
-## 🚀 Features
+## Features
 
 ### Model Architecture
 - **Encoder-Decoder Architecture**: LSTM-based encoder for video features, LSTM decoder with attention for caption generation
@@ -32,7 +32,7 @@ This project utilizes the <a href="https://opendatalab.com/MSVD">MSVD</a> datase
 - **Error Handling**: Robust error handling and logging
 - **Documentation**: Comprehensive documentation and examples
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 Video-Captioning/
@@ -67,7 +67,7 @@ Video-Captioning/
 └── README_PYTORCH.md             # This file
 ```
 
-## 🛠️ Installation
+## Installation
 
 ### Requirements
 - Python 3.8+
@@ -90,7 +90,7 @@ pip install -r requirements_pytorch.txt
 
 ```
 
-## 🎯 Quick Start
+## Quick Start
 
 ### 1. Data Preparation
 
@@ -154,7 +154,7 @@ python predict.py multiple \
     --method beam
 ```
 
-## 🏗️ Model Architecture
+## Model Architecture
 
 ### Encoder
 - **Video Feature Extraction**: Pre-trained CNN (VGG16/ResNet50) for frame-level features

@@ -188,13 +188,11 @@ class VideoCaptioningModel(nn.Module):
             -1, beam_size, -1
         ).contiguous().view(batch_size * beam_size, -1)
         
-        # Initialize beam search
         sequences = torch.full(
             (batch_size * beam_size, 1), start_token_id, device=device
         )
         scores = torch.zeros(batch_size * beam_size, device=device)
         
-        # Initialize decoder hidden state
         hidden_state = self.decoder.init_hidden_state(encoder_final_state)
         
         # Keep track of completed sequences
@@ -202,53 +200,41 @@ class VideoCaptioningModel(nn.Module):
         completed_scores = []
         
         for step in range(max_length):
-            # Get current input tokens
             input_tokens = sequences[:, -1:]
             
-            # Forward step
             logits, hidden_state, _ = self.decoder.forward_step(
                 input_tokens, hidden_state, encoder_outputs, encoder_mask
             )
             
-            # Convert to log probabilities
             log_probs = torch.log_softmax(logits, dim=-1)
             
-            # Add to current scores
             candidate_scores = scores.unsqueeze(1) + log_probs
             
-            # Reshape for beam search
             candidate_scores = candidate_scores.view(batch_size, -1)
             
-            # Select top candidates
             top_scores, top_indices = torch.topk(
                 candidate_scores, beam_size, dim=1
             )
             
-            # Convert back to flat indices
             beam_indices = top_indices // self.vocabulary_size
             token_indices = top_indices % self.vocabulary_size
             
-            # Update sequences and scores
             new_sequences = []
             new_scores = []
             new_hidden_states = []
             
             for batch_idx in range(batch_size):
                 for beam_idx in range(beam_size):
-                    # Get indices
                     old_beam_idx = batch_idx * beam_size + beam_indices[batch_idx, beam_idx]
                     token_idx = token_indices[batch_idx, beam_idx]
                     score = top_scores[batch_idx, beam_idx]
                     
-                    # Create new sequence
                     new_seq = torch.cat([
                         sequences[old_beam_idx],
                         token_idx.unsqueeze(0)
                     ])
                     
-                    # Check if sequence is completed
                     if token_idx == end_token_id:
-                        # Apply length penalty
                         length_penalty_factor = ((len(new_seq) - 1) ** length_penalty)
                         final_score = score / length_penalty_factor
                         
@@ -258,16 +244,13 @@ class VideoCaptioningModel(nn.Module):
                         new_sequences.append(new_seq)
                         new_scores.append(score)
                         
-                        # Update hidden state
                         new_h = hidden_state[0][:, old_beam_idx:old_beam_idx+1, :].clone()
                         new_c = hidden_state[1][:, old_beam_idx:old_beam_idx+1, :].clone()
                         new_hidden_states.append((new_h, new_c))
             
-            # Break if all sequences are completed
             if not new_sequences:
                 break
             
-            # Pad sequences to same length
             max_len = max(len(seq) for seq in new_sequences)
             padded_sequences = []
             for seq in new_sequences:
@@ -283,13 +266,11 @@ class VideoCaptioningModel(nn.Module):
             sequences = torch.stack(padded_sequences)
             scores = torch.tensor(new_scores, device=device)
             
-            # Update hidden states
             if new_hidden_states:
                 h_states = torch.cat([h for h, c in new_hidden_states], dim=1)
                 c_states = torch.cat([c for h, c in new_hidden_states], dim=1)
                 hidden_state = (h_states, c_states)
         
-        # Select best completed sequences
         if completed_sequences:
             best_sequences = []
             for batch_idx in range(batch_size):
@@ -300,13 +281,10 @@ class VideoCaptioningModel(nn.Module):
                     best_seq, _ = max(batch_completed, key=lambda x: x[1])
                     best_sequences.append(best_seq)
                 else:
-                    # Fallback to current sequences
                     best_sequences.append(sequences[batch_idx * beam_size])
         else:
-            # Use current sequences
             best_sequences = [sequences[i * beam_size] for i in range(batch_size)]
         
-        # Pad sequences to same length
         max_len = max(len(seq) for seq in best_sequences)
         final_sequences = []
         for seq in best_sequences:

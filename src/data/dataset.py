@@ -99,22 +99,17 @@ class VideoCaptioningDataset(Dataset):
         """
         row = self.data_df.iloc[idx]
         
-        # Load video features
         video_features = self._load_video_features(row['feature_path'])
         
-        # Process caption
         caption = row['caption']
         caption_tokens = self.vocabulary.encode_caption(caption)
         
-        # Create input and target sequences
         input_tokens = caption_tokens[:-1]  # Remove last token for input
         target_tokens = caption_tokens[1:]  # Remove first token for target
         
-        # Pad sequences
         input_tokens = self._pad_sequence(input_tokens, self.config.model.max_sequence_length)
         target_tokens = self._pad_sequence(target_tokens, self.config.model.max_sequence_length)
         
-        # Create attention mask for caption
         caption_mask = (input_tokens != self.vocabulary.pad_idx).float()
         
         return {
@@ -237,23 +232,19 @@ class VideoFeatureDataset(Dataset):
         cap = cv2.VideoCapture(video_path)
         frames = []
         
-        # Get total frame count
         total_frames = int(cap.get(cv2.CAP_PROP_FRAME_COUNT))
         
-        # Calculate frame indices to sample
         if total_frames > self.config.data.frames_per_video:
             indices = np.linspace(0, total_frames - 1, 
                                 self.config.data.frames_per_video, dtype=int)
         else:
             indices = list(range(total_frames))
         
-        # Extract frames
         for i, frame_idx in enumerate(indices):
             cap.set(cv2.CAP_PROP_POS_FRAMES, frame_idx)
             ret, frame = cap.read()
             
             if ret:
-                # Convert BGR to RGB
                 frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
                 frame = Image.fromarray(frame)
                 
@@ -290,7 +281,6 @@ def create_data_loaders(
     Returns:
         Tuple of (train_loader, val_loader, test_loader)
     """
-    # Create datasets
     train_dataset = VideoCaptioningDataset(
         train_df, vocabulary, config, split="train"
     )
@@ -304,7 +294,6 @@ def create_data_loaders(
             test_df, vocabulary, config, split="test"
         )
     
-    # Create data loaders
     train_loader = DataLoader(
         train_dataset,
         batch_size=config.training.batch_size,
